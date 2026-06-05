@@ -7,3 +7,4 @@ non-neuronal_cells.zarr
 .gitignore.rtf
 .DS_Store
 .gitattributes
+auto-annotation/
