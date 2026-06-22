@@ -18,3 +18,5 @@ External Segment of globus pallidus/external_segment_globus_pallidus.h5ad
 External Segment of globus pallidus/.ipynb_checkpoints/externalGP-checkpoint.ipynb
 /External Segment of globus pallidus/auto-annotation-ah
 *.tiff
+/Basal Forebrain - Septal Nuclear Complex /BF_septal_nuclei.zarr
+Basal Forebrain - Septal Nuclear Complex /.ipynb_checkpoints/Basal_forebrain-checkpoint.ipynb
