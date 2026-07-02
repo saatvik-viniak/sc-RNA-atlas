@@ -2,9 +2,7 @@ non-neuronal cells.h5ad
 autoannotation
 other_auto_annotation_things
 non-neuronal_cells.zarr
-
 .ipynb_checkpoints/Non-neuronal-checkpoint.ipynb
-.gitignore.rtf
 .DS_Store
 .gitattributes
 auto-annotation/
@@ -20,3 +18,18 @@ External Segment of globus pallidus/.ipynb_checkpoints/externalGP-checkpoint.ipy
 *.tiff
 /Basal Forebrain - Septal Nuclear Complex /BF_septal_nuclei.zarr
 Basal Forebrain - Septal Nuclear Complex /.ipynb_checkpoints/Basal_forebrain-checkpoint.ipynb
+Old Work/Basal Forebrain - Septal Nuclear Complex /BF_septal_nuclei.zarr/.zattrs
+GPe.h5ad
+CaB.h5ad
+GPi.h5ad
+NAC.h5ad
+PU.h5ad
+SN_VTA.h5ad
+SN.h5ad
+STH.h5ad
+sc-RNA atlas.code-workspace
+Old Work
+/Users/saatvikviniak/Desktop/Lab work/sc-RNA atlas/auto-annotation-ah
+*.zarr
+/*.zarr
+*.zarry
