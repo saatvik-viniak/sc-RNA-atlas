@@ -6,9 +6,14 @@ def trinarize_gene_in_cluster(counts, f=0.2, confidence_threshold=0.95, confiden
     counts = np.asarray(counts).ravel()
     n = len(counts)
     k = np.sum(counts > 0)
+    
+    alpha_prior = 1.5
+    beta_prior = 2.0
 
-    alpha_post = k + 1.5
-    beta_post = (n - k) + 2.0
+    alpha_post = k + alpha_prior
+    beta_post = (n - k) + beta_prior
+    
+    
     p_confidence = 1.0 - beta_dist.cdf(f, alpha_post, beta_post)
 
     if p_confidence >= confidence_threshold:
@@ -17,8 +22,9 @@ def trinarize_gene_in_cluster(counts, f=0.2, confidence_threshold=0.95, confiden
         call = "off"
     else:
         call = "ambiguous"
-
-    return call, {"p_confidence": p_confidence, "k": k, "n": n, "frac": k / n if n else np.nan}
+    
+    scores = {'p_confidence': p_confidence}
+    return call, scores
 
 def build_trinarization_matrix(adata, cluster_key="leiden", count_layer="raw_counts", gene_key="Gene"):
     if count_layer not in adata.layers:
