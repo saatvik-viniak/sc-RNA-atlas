@@ -20,7 +20,7 @@ def trinarize_gene_in_cluster(counts, f=0.2, confidence_threshold=0.95, confiden
 
     return call, {"p_confidence": p_confidence, "k": k, "n": n, "frac": k / n if n else np.nan}
 
-def build_trinarization_matrix(adata, cluster_key="leiden", count_layer="raw_counts", gene_key="feature_name"):
+def build_trinarization_matrix(adata, cluster_key="leiden", count_layer="raw_counts", gene_key="Gene"):
     if count_layer not in adata.layers:
         raise ValueError(f"{count_layer} not found in adata.layers")
 

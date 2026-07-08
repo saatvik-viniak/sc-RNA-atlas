@@ -32,4 +32,6 @@ Old Work
 /Users/saatvikviniak/Desktop/Lab work/sc-RNA atlas/auto-annotation-ah
 *.zarr
 /*.zarr
-*.zarry
+*.zarr
+/*.pychase
+/__pycache__
