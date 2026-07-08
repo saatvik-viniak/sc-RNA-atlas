@@ -1,41 +1,19 @@
+## scanpy auto annotator
+import glob
 import os
 import yaml
 
-
 def load_rules(path):
     rules = []
-
-    for root, _, files in os.walk(path):
-        for file in files:
-            if file == "README.md":
-                continue
-            if not (file.endswith(".md") or file.endswith(".yaml")):
-                continue
-
-            filename = os.path.join(root, file)
-
-            with open(filename) as f:
-                doc = next(yaml.load_all(f, Loader=yaml.SafeLoader))
-
-            if doc is None:
-                continue
-
-            if "name" not in doc:
-                raise ValueError(os.path.basename(filename) + " did not contain a 'name' attribute, which is required.")
-            if "abbreviation" not in doc:
-                raise ValueError(os.path.basename(filename) + " did not contain an 'abbreviation' attribute, which is required.")
-            if "definition" not in doc:
-                raise ValueError(os.path.basename(filename) + " did not contain a 'definition' attribute, which is required.")
-
-            rules.append(
-                {
-                    "name": doc["name"],
-                    "abbreviation": doc["abbreviation"],
-                    "definition": doc["definition"],
-                    "categories": doc.get("categories", None),
-                }
-            )
-
+    for filename in glob.glob(os.path.join(path, "*.md")):
+        with open(filename) as f:
+            doc = next(yaml.load_all(f, Loader=yaml.SafeLoader))
+        if doc is None:
+            continue
+        for key in ("name", "abbreviation", "definition", "categories"):
+            if key not in doc:
+                raise ValueError(f"{os.path.basename(filename)} is missing required attribute '{key}'")
+        rules.append({k: doc[k] for k in ("name", "abbreviation", "definition", "categories")})
     return rules
 
 
@@ -56,20 +34,18 @@ def annotate_cluster(present_genes, absent_genes, rules):
 
 
 def auto_annotate_results(results, rules):
+    ## results is {cluster: {gene: 'on'/'off'/'ambiguous'}} from build_trinarization_matrix
     annotations = {}
-
-    for cluster, gene_calls in results.items():
-        present_genes = {gene for gene, call in gene_calls.items() if call == "on"}
-        absent_genes = {gene for gene, call in gene_calls.items() if call == "off"}
+    for cluster, calls in results.items():
+        present_genes = {gene for gene, call in calls.items() if call == "on"}
+        absent_genes  = {gene for gene, call in calls.items() if call == "off"}
         annotations[cluster] = annotate_cluster(present_genes, absent_genes, rules)
-
     return annotations
 
 
 def add_annotations_to_adata(adata, annotations, cluster_key="leiden", obs_key="auto_annotation"):
-    cluster_to_label = {
-        cluster: " ".join(labels) if len(labels) > 0 else ""
-        for cluster, labels in annotations.items()
-    }
-    adata.obs[obs_key] = adata.obs[cluster_key].map(cluster_to_label)
+    ## maps annotation list back to each cell via its cluster label
+    adata.obs[obs_key] = adata.obs[cluster_key].astype(str).map(
+        lambda c: ", ".join(annotations.get(c, ["unassigned"]))
+    )
     return adata

@@ -1,62 +1,34 @@
-from scipy.sparse import issparse
 import numpy as np
 from scipy.stats import beta as beta_dist
-
-def trinarize_gene_in_cluster(counts, f=0.2, confidence_threshold=0.95, confidence_low=0.05):
-    counts = np.asarray(counts).ravel()
-    n = len(counts)
-    k = np.sum(counts > 0)
-    
+from tqdm.auto import tqdm
+ 
+def trinarize(k, n, f=0.2, confidence_threshold=0.95, confidence_low=0.05):
+    #same prior as they used previously
     alpha_prior = 1.5
-    beta_prior = 2.0
-
+    beta_prior = 1.5
+    
+    ## Now this is the bayesian update and here the posterior is evaluted
     alpha_post = k + alpha_prior
     beta_post = (n - k) + beta_prior
-    
-    
-    p_confidence = 1.0 - beta_dist.cdf(f, alpha_post, beta_post)
-
-    if p_confidence >= confidence_threshold:
-        call = "on"
-    elif p_confidence <= confidence_low:
-        call = "off"
-    else:
-        call = "ambiguous"
-    
-    scores = {'p_confidence': p_confidence}
-    return call, scores
-
-def build_trinarization_matrix(adata, cluster_key="leiden", count_layer="raw_counts", gene_key="Gene"):
-    if count_layer not in adata.layers:
-        raise ValueError(f"{count_layer} not found in adata.layers")
-
-    matrix = adata.layers[count_layer]
-    clusters = adata.obs[cluster_key].astype(str).values
-
-    if gene_key in adata.var.columns:
-        genes = adata.var[gene_key].astype(str).values
-    else:
-        genes = adata.var_names.astype(str).values
-
+ 
+    #probability the true fraction expressing the gene is > f (20%) : 1 - cdf gives the area above f
+    p = 1.0 - beta_dist.cdf(f, alpha_post, beta_post)
+ 
+    #95% cutoff = on, 5% cutoff = off, anything in between is ambiguous
+    calls = np.where(p >= confidence_threshold, 'on',
+             np.where(p <= confidence_low, 'off', 'ambiguous'))
+    return calls
+ 
+def build_trinarization_matrix(adata, cluster_key='leiden', count_layer='raw_counts', gene_key='Gene'):
+    counts = adata.layers[count_layer]    #full raw counts, cells x genes
+    genes = adata.var[gene_key].astype(str).values   #gene symbols (var_names are ensembl ids)
+    clusters = adata.obs[cluster_key].values
+ 
     results = {}
-    stats = {}
-
-    for cluster in np.unique(clusters):
+    for cluster in tqdm(np.unique(clusters), desc='trinarizing'):
         mask = clusters == cluster
-        cluster_counts = matrix[mask]
-
-        results[cluster] = {}
-        stats[cluster] = {}
-
-        for i, gene in enumerate(genes):
-            gene_slice = cluster_counts[:, i]
-            if issparse(gene_slice):
-                gene_counts = gene_slice.toarray().ravel()
-            else:
-                gene_counts = np.asarray(gene_slice).ravel()
-
-            call, score = trinarize_gene_in_cluster(gene_counts)
-            results[cluster][gene] = call
-            stats[cluster][gene] = score
-
-    return results, stats
+        n = mask.sum() #total cells in the cluster
+        k = np.asarray((counts[mask] > 0).sum(axis=0)).ravel() #cells with at least 1 count, per gene
+        results[str(cluster)] = dict(zip(genes, trinarize(k, n)))
+    return results
+ 
