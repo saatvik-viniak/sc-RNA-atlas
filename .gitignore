@@ -35,3 +35,6 @@ Old Work
 *.zarr
 /*.pychase
 /__pycache__
+/*.h5ad
+STH_clustered.h5ad
+STH_without_doublet.h5ad
