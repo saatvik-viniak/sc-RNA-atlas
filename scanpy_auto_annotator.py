@@ -3,6 +3,7 @@ import glob
 import os
 import yaml
 
+
 def load_rules(path):
     rules = []
     for filename in glob.glob(os.path.join(path, "*.md")):
@@ -24,23 +25,24 @@ def parse_definition(definition_str):
     return required, excluded
 
 
-def annotate_cluster(present_genes, absent_genes, rules):
+def annotate_cluster(probs, rules):
     matches = []
     for rule in rules:
         required, excluded = parse_definition(rule["definition"])
-        if all(g in present_genes for g in required) and all(g in absent_genes for g in excluded):
+        #start at 1 and multiply: p for each positive marker, (1 - p) for each negative marker
+        p = 1.0
+        for gene in required:
+            p = p * probs.get(gene, 0.0)
+        for gene in excluded:
+            p = p * (1.0 - probs.get(gene, 0.0))
+        if p > 0.5: #tag applies when the combined probability is greater than 50%
             matches.append(rule["abbreviation"])
     return matches
 
 
 def auto_annotate_results(results, rules):
-    ## results is {cluster: {gene: 'on'/'off'/'ambiguous'}} from build_trinarization_matrix
-    annotations = {}
-    for cluster, calls in results.items():
-        present_genes = {gene for gene, call in calls.items() if call == "on"}
-        absent_genes  = {gene for gene, call in calls.items() if call == "off"}
-        annotations[cluster] = annotate_cluster(present_genes, absent_genes, rules)
-    return annotations
+    ## results is {cluster: {gene: probability}} from build_trinarization_matrix
+    return {cluster: annotate_cluster(probs, rules) for cluster, probs in results.items()}
 
 
 def add_annotations_to_adata(adata, annotations, cluster_key="leiden", obs_key="auto_annotation"):

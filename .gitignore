@@ -33,8 +33,10 @@ Old Work
 *.zarr
 /*.zarr
 *.zarr
-/*.pychase
-/__pycache__
 /*.h5ad
 STH_clustered.h5ad
 STH_without_doublet.h5ad
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
