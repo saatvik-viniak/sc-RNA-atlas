@@ -1,4 +1,4 @@
-## new trinarizer
+## SCARF trinarizer. Key difference is it uses discrete cutoffs instead of the cumulative multiplication
 import pandas as pd
 from scipy.stats import beta as beta_dist
 import numpy as np
