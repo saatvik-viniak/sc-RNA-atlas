@@ -41,5 +41,5 @@ STH_without_doublet.h5ad
 *.pyo
 *.pyd
 KEGG_RIBOSOME.v2026.1.Hs.txt
-convergence_test.pdf
+*.pdf
 *.txt
